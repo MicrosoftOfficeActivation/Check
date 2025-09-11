@@ -1,76 +1,75 @@
 <#
 .SYNOPSIS
-    Este script solicita una clave de producto, la valida contra una lista y,
-    si es correcta, ejecuta un script remoto y cierra la ventana de PowerShell
-    inmediatamente después de la ejecución.
+    Launcher seguro que valida una clave de producto contra un servidor remoto
+    para garantizar un único uso.
 
 .DESCRIPTION
-    Diseñado como un "launcher" seguro por clave. Tras una validación exitosa,
-    descarga y ejecuta un script de una URL. La sesión de PowerShell finaliza
-    automáticamente en cuanto el script remoto termina su ejecución, sin dejar
-    rastro visible de la consola.
-
-.EXAMPLE
-    .\verificador_cierre_inmediato.ps1
-    Por favor, introduce la clave del producto: ACCESO-BETA-789
-    Clave correcta. Iniciando la ejecución...
-    (Se ejecuta el script de la URL y la ventana se cierra instantáneamente al finalizar)
+    Este script contacta a una API central para validar la clave introducida.
+    El servidor determina si la clave es válida y si ya ha sido utilizada.
+    Este método es robusto y previene la manipulación por parte del usuario.
 #>
 
 # =================================================================
 #               CONFIGURACIÓN (MODIFICA ESTOS VALORES)
 # =================================================================
 
-# 1. Define aquí la LISTA de claves de producto que consideras válidas.
-$listaDeClaves = @(
-    "CLAVE-ALPHA-001",
-    "MI-CLAVE-SECRETA-123",
-    "PROYECTO-DELTA-456",
-    "ACCESO-BETA-789"
-)
+# 1. URL de tu validador PHP en el servidor.
+#    ¡IMPORTANTE! Debe terminar con "?key="
+$urlValidador = "https://multi.jonatanaurumvault.uk/office/validate_key.php?key="
 
-# 2. Introduce la URL completa del script que quieres descargar y ejecutar.
+# 2. URL del script que se ejecutará si la clave es válida.
 $urlDelScript = "https://get.activated.win"
 
 # =================================================================
 #                      INICIO DEL SCRIPT
 # =================================================================
 
-# Limpia la pantalla para una mejor presentación (opcional).
 Clear-Host
-
-# Solicita al usuario que introduzca la clave.
 $claveIntroducida = Read-Host "Por favor, introduce la clave del producto"
 
-# Compara la clave introducida por el usuario con la lista de claves válidas.
-if ($listaDeClaves -contains $claveIntroducida) {
-    # Si la clave introducida está en la lista, se ejecuta este bloque.
-    Write-Host "Clave correcta. Iniciando la ejecución..." -ForegroundColor Green
+# Construimos la URL completa para la consulta a la API.
+$urlConsulta = $urlValidador + $claveIntroducida
 
-    try {
-        # =================================================================
-        #        EJECUCIÓN Y CIERRE INMEDIATO (MODIFICACIÓN CLAVE)
-        # =================================================================
-        # El punto y coma (;) actúa como separador. PowerShell ejecutará
-        # la pipeline 'irm | iex' por completo, y solo cuando esta termine,
-        # ejecutará el comando 'exit'.
-        irm $urlDelScript | iex; exit
-    }
-    catch {
-        # Si ocurre un error DURANTE la descarga (ej: URL incorrecta), se captura aquí.
-        # NOTA: Si el script descargado tiene un error, es posible que la ventana
-        # se cierre antes de que puedas verlo, dependiendo del tipo de error.
-        Write-Host "ERROR: No se pudo descargar o iniciar el script desde la URL." -ForegroundColor Red
-        Write-Host "Detalles del error: $($_.Exception.Message)" -ForegroundColor Yellow
-        # Pausamos para que el usuario pueda leer el error de descarga.
-        Read-Host "Presiona Enter para salir."
-        exit
-    }
+try {
+    # Hacemos la llamada al servidor y guardamos su respuesta.
+    Write-Host "Contactando con el servidor de validación..."
+    $respuestaServidor = Invoke-RestMethod -Uri $urlConsulta -Method Get
 }
-else {
-    # Si la clave introducida NO está en la lista, se ejecuta este bloque.
-    Write-Host "Clave incorrecta. Acceso denegiado." -ForegroundColor Red
-    
-    # Pausamos el script para que la ventana no se cierre de inmediato.
+catch {
+    Write-Host "ERROR: No se pudo contactar con el servidor de validación." -ForegroundColor Red
+    Write-Host "Verifica tu conexión a internet o la URL del validador." -ForegroundColor Yellow
     Read-Host "Presiona Enter para salir."
+    exit
 }
+
+# Analizamos la respuesta del servidor.
+switch ($respuestaServidor) {
+    "OK" {
+        # ¡Éxito! La clave es válida y no ha sido usada.
+        Write-Host "Clave correcta. Iniciando la ejecución..." -ForegroundColor Green
+        try {
+            # Ejecutamos el script remoto y cerramos la ventana.
+            irm $urlDelScript | iex; exit
+        }
+        catch {
+            Write-Host "ERROR: No se pudo ejecutar el script remoto." -ForegroundColor Red
+            Read-Host "Presiona Enter para salir."
+            exit
+        }
+    }
+    "INVALID_KEY" {
+        # La clave no está en la lista de claves válidas.
+        Write-Host "Clave incorrecta. Acceso denegado." -ForegroundColor Red
+    }
+    "KEY_ALREADY_USED" {
+        # La clave es válida, pero ya fue usada.
+        Write-Host "Clave correcta, pero ya ha sido utilizada. Acceso denegado." -ForegroundColor Yellow
+    }
+    default {
+        # Cualquier otra respuesta del servidor.
+        Write-Host "Respuesta desconocida del servidor: $respuestaServidor" -ForegroundColor Red
+    }
+}
+
+# Pausamos para que el usuario pueda leer el mensaje de error.
+Read-Host "Presiona Enter para salir."
