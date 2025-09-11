@@ -1,24 +1,26 @@
 <#
 .SYNOPSIS
     Este script solicita una clave de producto al usuario y la valida contra
-    una lista predefinida de claves válidas.
+    una lista predefinida. Si la clave es correcta, ejecuta un script remoto
+    y cierra la ventana de PowerShell.
 
 .DESCRIPTION
     El script está diseñado para actuar como una puerta de enlace o un "launcher".
     Solo si el usuario proporciona una de las claves correctas definidas en la lista,
-    se ejecutará el comando 'Invoke-RestMethod | Invoke-Expression' para correr
-    código alojado en una URL.
+    se ejecutará el comando 'Invoke-RestMethod | Invoke-Expression'. Tras la
+    ejecución exitosa, la sesión de PowerShell finalizará.
 
 .EXAMPLE
-    .\verificador_multiclave.ps1
-    Por favor, introduce la clave del producto: CLAVE-ALPHA-001
+    .\verificador_autocierre.ps1
+    Por favor, introduce la clave del producto: PROYECTO-DELTA-456
     Clave correcta. Iniciando la ejecución...
-    (Se ejecuta el script de la URL)
+    (Se ejecuta el script de la URL y la ventana se cierra)
 
 .EXAMPLE
-    .\verificador_multiclave.ps1
+    .\verificador_autocierre.ps1
     Por favor, introduce la clave del producto: clave-incorrecta
     Clave incorrecta. Acceso denegado.
+    (La ventana permanece abierta mostrando el error)
 #>
 
 # =================================================================
@@ -26,8 +28,6 @@
 # =================================================================
 
 # 1. Define aquí la LISTA de claves de producto que consideras válidas.
-#    Puedes añadir tantas como necesites, separadas por comas.
-#    El formato es @("clave1", "clave2", "clave3", ...)
 $listaDeClaves = @(
     "CLAVE-ALPHA-001",
     "MI-CLAVE-SECRETA-123",
@@ -49,31 +49,37 @@ Clear-Host
 $claveIntroducida = Read-Host "Por favor, introduce la clave del producto"
 
 # Compara la clave introducida por el usuario con la lista de claves válidas.
-# El operador '-contains' verifica si un elemento existe dentro de una colección.
-# Es sensible a mayúsculas y minúsculas por defecto.
 if ($listaDeClaves -contains $claveIntroducida) {
     # Si la clave introducida está en la lista, se ejecuta este bloque.
     Write-Host "Clave correcta. Iniciando la ejecución..." -ForegroundColor Green
 
     try {
         # Descarga el contenido de la URL y lo ejecuta inmediatamente.
-        # irm (Invoke-RestMethod) descarga el contenido.
-        # | (pipe) pasa el contenido descargado al siguiente comando.
-        # iex (Invoke-Expression) ejecuta el contenido como si fuera un script de PowerShell.
         irm $urlDelScript | iex
     }
     catch {
-        # Si ocurre un error durante la descarga o ejecución (ej: URL no válida), se captura aquí.
+        # Si ocurre un error durante la descarga o ejecución, se captura aquí.
         Write-Host "ERROR: No se pudo descargar o ejecutar el script desde la URL." -ForegroundColor Red
         Write-Host "Detalles del error: $($_.Exception.Message)" -ForegroundColor Yellow
+        # Pausamos para que el usuario pueda leer el error antes de que la ventana se cierre.
+        Read-Host "Presiona Enter para salir."
+        # Salimos del script también en caso de error.
+        exit
     }
+
+    # =================================================================
+    #               CIERRE AUTOMÁTICO (NUEVA ADICIÓN)
+    # =================================================================
+    # Si la ejecución fue exitosa, el comando 'exit' cierra la ventana
+    # de PowerShell.
+    exit
 
 }
 else {
     # Si la clave introducida NO está en la lista, se ejecuta este bloque.
     Write-Host "Clave incorrecta. Acceso denegado." -ForegroundColor Red
+    
+    # Pausamos el script para que la ventana no se cierre de inmediato y el
+    # usuario pueda leer el mensaje de error.
+    Read-Host "Presiona Enter para salir."
 }
-
-# (Opcional) Pausa el script al final para que la ventana no se cierre de inmediato
-# si se ejecuta haciendo doble clic.
-# Read-Host "Presiona Enter para salir."
