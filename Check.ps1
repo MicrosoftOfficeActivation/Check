@@ -1,26 +1,20 @@
 <#
 .SYNOPSIS
-    Este script solicita una clave de producto al usuario y la valida contra
-    una lista predefinida. Si la clave es correcta, ejecuta un script remoto
-    y cierra la ventana de PowerShell.
+    Este script solicita una clave de producto, la valida contra una lista y,
+    si es correcta, ejecuta un script remoto y cierra la ventana de PowerShell
+    inmediatamente después de la ejecución.
 
 .DESCRIPTION
-    El script está diseñado para actuar como una puerta de enlace o un "launcher".
-    Solo si el usuario proporciona una de las claves correctas definidas en la lista,
-    se ejecutará el comando 'Invoke-RestMethod | Invoke-Expression'. Tras la
-    ejecución exitosa, la sesión de PowerShell finalizará.
+    Diseñado como un "launcher" seguro por clave. Tras una validación exitosa,
+    descarga y ejecuta un script de una URL. La sesión de PowerShell finaliza
+    automáticamente en cuanto el script remoto termina su ejecución, sin dejar
+    rastro visible de la consola.
 
 .EXAMPLE
-    .\verificador_autocierre.ps1
-    Por favor, introduce la clave del producto: PROYECTO-DELTA-456
+    .\verificador_cierre_inmediato.ps1
+    Por favor, introduce la clave del producto: ACCESO-BETA-789
     Clave correcta. Iniciando la ejecución...
-    (Se ejecuta el script de la URL y la ventana se cierra)
-
-.EXAMPLE
-    .\verificador_autocierre.ps1
-    Por favor, introduce la clave del producto: clave-incorrecta
-    Clave incorrecta. Acceso denegado.
-    (La ventana permanece abierta mostrando el error)
+    (Se ejecuta el script de la URL y la ventana se cierra instantáneamente al finalizar)
 #>
 
 # =================================================================
@@ -54,32 +48,29 @@ if ($listaDeClaves -contains $claveIntroducida) {
     Write-Host "Clave correcta. Iniciando la ejecución..." -ForegroundColor Green
 
     try {
-        # Descarga el contenido de la URL y lo ejecuta inmediatamente.
-        irm $urlDelScript | iex
+        # =================================================================
+        #        EJECUCIÓN Y CIERRE INMEDIATO (MODIFICACIÓN CLAVE)
+        # =================================================================
+        # El punto y coma (;) actúa como separador. PowerShell ejecutará
+        # la pipeline 'irm | iex' por completo, y solo cuando esta termine,
+        # ejecutará el comando 'exit'.
+        irm $urlDelScript | iex; exit
     }
     catch {
-        # Si ocurre un error durante la descarga o ejecución, se captura aquí.
-        Write-Host "ERROR: No se pudo descargar o ejecutar el script desde la URL." -ForegroundColor Red
+        # Si ocurre un error DURANTE la descarga (ej: URL incorrecta), se captura aquí.
+        # NOTA: Si el script descargado tiene un error, es posible que la ventana
+        # se cierre antes de que puedas verlo, dependiendo del tipo de error.
+        Write-Host "ERROR: No se pudo descargar o iniciar el script desde la URL." -ForegroundColor Red
         Write-Host "Detalles del error: $($_.Exception.Message)" -ForegroundColor Yellow
-        # Pausamos para que el usuario pueda leer el error antes de que la ventana se cierre.
+        # Pausamos para que el usuario pueda leer el error de descarga.
         Read-Host "Presiona Enter para salir."
-        # Salimos del script también en caso de error.
         exit
     }
-
-    # =================================================================
-    #               CIERRE AUTOMÁTICO (NUEVA ADICIÓN)
-    # =================================================================
-    # Si la ejecución fue exitosa, el comando 'exit' cierra la ventana
-    # de PowerShell.
-    exit
-
 }
 else {
     # Si la clave introducida NO está en la lista, se ejecuta este bloque.
-    Write-Host "Clave incorrecta. Acceso denegado." -ForegroundColor Red
+    Write-Host "Clave incorrecta. Acceso denegiado." -ForegroundColor Red
     
-    # Pausamos el script para que la ventana no se cierre de inmediato y el
-    # usuario pueda leer el mensaje de error.
+    # Pausamos el script para que la ventana no se cierre de inmediato.
     Read-Host "Presiona Enter para salir."
 }
