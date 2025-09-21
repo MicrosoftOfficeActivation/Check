@@ -4,7 +4,7 @@
 #               CONFIGURACIÓN
 # =================================================================
 
-# 1. Define aquí la LISTA de claves de producto que consideras válidas.
+# 1. Define aquí la LISTA de claves de producto válidas.
 $listaDeClaves = @(
 
     "8R2J6-T4Y7U-1I5O9-P3A8S-D6F2G",
