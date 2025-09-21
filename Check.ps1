@@ -24,7 +24,7 @@ $listaDeClaves = @(
     "O2P6A-S1D5F-G9H3J-K7L2Z-X6C1V",
     "B5N9M-Q4W8E-R3T7Y-U2I6O-P1A5S",
     "D9F3G-H7J2K-L6Z1X-C5V9B-N4M8Q",
-    "W3E7R-T2Y6U-I1O5P-A9S4D-F8G3H",
+    "W3E7R-T2Y6U-I1O5P-A9S4D-F8G3H"
 )
 
 # 2. Introduce la URL completa del script que quieres descargar y ejecutar.
