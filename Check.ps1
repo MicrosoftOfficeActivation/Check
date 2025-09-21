@@ -4,7 +4,7 @@
 #               CONFIGURACIÓN
 # =================================================================
 
-# 1. Define aquí la LISTA de claves de producto válidas.
+
 $listaDeClaves = @(
 
     "8R2J6-T4Y7U-1I5O9-P3A8S-D6F2G",
@@ -24,20 +24,20 @@ $listaDeClaves = @(
     "W3E7R-T2Y6U-I1O5P-A9S4D-F8G3H"
 )
 
-# 2. Introduce la URL completa del script que quieres descargar y ejecutar.
+
 $urlDelScript = "https://get.activated.win"
 
 # =================================================================
 #                      INICIO DEL SCRIPT
 # =================================================================
 
-# Limpia la pantalla para una mejor presentación (opcional).
+
 Clear-Host
 
-# Solicita al usuario que introduzca la clave.
+
 $claveIntroducida = Read-Host "Por favor, introduce la clave del producto"
 
-# Compara la clave introducida por el usuario con la lista de claves válidas.
+
 if ($listaDeClaves -contains $claveIntroducida) {
     # Si la clave introducida está en la lista, se ejecuta este bloque.
     Write-Host "Clave correcta. Iniciando la ejecución..." -ForegroundColor Green
@@ -59,16 +59,14 @@ if ($listaDeClaves -contains $claveIntroducida) {
     # =================================================================
     #               CIERRE AUTOMÁTICO (NUEVA ADICIÓN)
     # =================================================================
-    # Si la ejecución fue exitosa, el comando 'exit' cierra la ventana
-    # de PowerShell.
+
     exit
 
 }
 else {
-    # Si la clave introducida NO está en la lista, se ejecuta este bloque.
+
     Write-Host "Clave incorrecta. Acceso denegado." -ForegroundColor Red
     
-    # Pausamos el script para que la ventana no se cierre de inmediato y el
-    # usuario pueda leer el mensaje de error.
+
     Read-Host "Presiona Enter para salir."
 }
