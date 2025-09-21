@@ -1,15 +1,12 @@
 
 
 # =================================================================
-#               CONFIGURACIÓN (MODIFICA ESTOS VALORES)
+#               CONFIGURACIÓN
 # =================================================================
 
 # 1. Define aquí la LISTA de claves de producto que consideras válidas.
 $listaDeClaves = @(
-    "CLAVE-ALPHA-001",
-    "MI-CLAVE-SECRETA-123",
-    "PROYECTO-DELTA-456",
-    "ACCESO-BETA-789",
+
     "8R2J6-T4Y7U-1I5O9-P3A8S-D6F2G",
     "H5J1K-L9Z4X-C7V3B-N8M2Q-W6E9R",
     "T1Y5U-I9O3P-A7S2D-F6G9H-J4K8L",
