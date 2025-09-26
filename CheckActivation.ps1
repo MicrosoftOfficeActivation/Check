@@ -4,7 +4,7 @@
 $listaDeClaves = @(
 
 
-    "Q1W5E-R9T3Y-U7I2O-P6A9S-D4F8G"
+    ""
 )
 
 
